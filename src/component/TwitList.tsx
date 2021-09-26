@@ -1,16 +1,24 @@
+import { TwitModel } from "../lib/model/twitModel";
 import styled from "@emotion/styled";
 import React from "react";
 import { Twit } from "./Twit";
 
-export const TwitList = () => {
+export const TwitList = ({ twitList }: any) => {
+  const addLike = (twitId: string) => {};
+
   return (
     <TwitListContainer>
-      {dummyTwit.map((twit) => (
+      {twitList.map((twit: TwitModel) => (
         <Twit
           key={twit.twitId}
           twitId={twit.twitId}
-          title={twit.title}
+          imgUrl={twit.imgUrl}
           content={twit.content}
+          userInfo={twit.userInfo}
+          twitState={twit.twitState}
+          commentId={twit.commentId}
+          preferenceId={twit.preferenceId}
+          timeStamp={twit.timeStamp}
         />
       ))}
     </TwitListContainer>
@@ -18,11 +26,3 @@ export const TwitList = () => {
 };
 
 const TwitListContainer = styled.section``;
-
-const dummyTwit = [
-  {
-    twitId: "1",
-    title: "안녕하세요",
-    content: "아주 코인시장이 활발하네요.",
-  },
-];

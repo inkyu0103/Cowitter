@@ -5,8 +5,11 @@ import { signInWithPopup } from "firebase/auth";
 import { authInstance, provider } from "./lib/constant/firebase/auth";
 import { useDispatch } from "react-redux";
 import { Home } from "./page/Home";
+import { useAuth } from "./lib/hooks/useAuth";
 
 export const App = () => {
+  const a = useAuth();
+
   return (
     <>
       <Global styles={globalStyle} />
@@ -24,9 +27,20 @@ const globalStyle = css`
     box-sizing: border-box;
   }
 
-  html,
+  html {
+    width: 100%;
+    height: 100%;
+  }
   body {
     width: 100%;
     height: 100%;
+  }
+  #root {
+    width: 100%;
+    height: 100%;
+  }
+  a {
+    text-decoration: none;
+    color: black;
   }
 `;
