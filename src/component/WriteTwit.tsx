@@ -1,21 +1,22 @@
 import styled from "@emotion/styled";
-import React, { ReactEventHandler, useRef, useState } from "react";
+import React, { ReactEventHandler, useEffect, useRef, useState } from "react";
 import { collection, addDoc, updateDoc } from "firebase/firestore";
 import { db } from "../lib/constant/firebase/fdb";
 import { useAuth } from "../lib/hooks/useAuth";
 import Twit from "../lib/repository/Twit";
 import picture from "../assets/picture.png";
+import Buy from "../assets/Buy.png";
+import Sell from "../assets/Sell.png";
+import { ColorMap } from "../lib/constant/Color";
 
 export const WriteTwit = () => {
   const { displayName, uid, photoURL } = useAuth();
   const [content, setContent] = useState(null);
-  // 0 - buy, 1 - sell
   const [twitState, setTwitState] = useState(0);
   const [twitImg, setTwitImg] = useState(null);
+  const inputRef = useRef(null);
 
-  const inputRef = useRef(null)
-
-  const handleInput = (e: any) => {
+  const handleInputChange = (e: any) => {
     setContent(e.target.value);
   };
 
@@ -25,9 +26,14 @@ export const WriteTwit = () => {
     setContent("");
   };
 
-  const handleOnChange =  async() =>{
-
-  }
+  const handleChangeInput = (e: any) => {
+    const imageReader = new FileReader();
+    console.log(e);
+    if (inputRef.current.files && inputRef.current.files[0]) {
+      imageReader.addEventListener("load", (ev) => console.log("asdfasdfasdf"));
+    }
+    imageReader.readAsDataURL(inputRef.current.files[0]);
+  };
 
   return (
     <WriteTwitContainer>
@@ -35,19 +41,25 @@ export const WriteTwit = () => {
         <WriteTwitProfileImg src={photoURL} />
       </WriteTwitProfileImgWrapper>
 
-      <div style={{ display: "flex", flexDirection: "column", flexGrow: 1 }}>
+      <WriteTwitContentsWrapper>
         <WriteTwitInputWrapper>
-          <WriteTwitInput onChange={handleInput} />
+          <WriteTwitInput onChange={handleInputChange} />
         </WriteTwitInputWrapper>
 
         <WriteTwitIconWrapper>
           <WriteTwitAddImageIconWrapper>
-            <WriteTwitAddImageInput type="file" accept="image/*" ref={inputRef} onChange={handleOnChange}/>
+            <WriteTwitAddImageInput
+              type="file"
+              accept="image/*"
+              ref={inputRef}
+              onChange={handleChangeInput}
+            />
             <WriteTwitAddImageIcon src={picture} />
           </WriteTwitAddImageIconWrapper>
+
           {BtnGroup.map((btn, idx) => {
             return (
-              <StateBtn
+              <WriteTwitBuySellIconWrapper
                 selected={btn.selected}
                 background={btn.background}
                 onClick={(e) => {
@@ -60,14 +72,14 @@ export const WriteTwit = () => {
                   });
                 }}
               >
-                {btn.name}
-              </StateBtn>
+                <WriteTwitBuySellIcon src={btn.icon}></WriteTwitBuySellIcon>
+              </WriteTwitBuySellIconWrapper>
             );
           })}
 
-          <TwitBtn onClick={handleAddTwit}>Cowit!</TwitBtn>
+          <TwitBtn onClick={handleAddTwit}>COWIT</TwitBtn>
         </WriteTwitIconWrapper>
-      </div>
+      </WriteTwitContentsWrapper>
     </WriteTwitContainer>
   );
 };
@@ -76,41 +88,50 @@ const BtnGroup = [
   {
     name: "Buy",
     state: 0,
-    background: "#18A558",
+    background: "#66DE93",
     selected: true,
+    icon: Buy,
   },
   {
     name: "Sell",
     state: 1,
-    background: "#F79489",
+    background: "#FF616D",
     selected: false,
+    icon: Sell,
   },
 ];
 
-const StateBtn = styled.button<{ selected: boolean; background: string }>`
-  height: 30px;
+const WriteTwitImagePreviewWrapper = styled.div``;
+
+const WriteTwitImagePreview = styled.img``;
+
+const WriteTwitBuySellIconWrapper = styled.div<{
+  selected: boolean;
+  background: string;
+}>`
   background-color: ${({ selected, background }) =>
-    selected ? background : "white"};
-  width: 60px;
+    selected ? background : "#fff"};
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  margin-left: 10px;
   transition: background-color 0.2s;
-  border: none;
-  border-radius: 50px;
 
   :hover {
-    background: ${({ background, selected }) => {
-      if (selected === false && background === "#18A558") {
-        return "#A3EBB1";
-      } else if (selected === false && background === "#F79489") {
-        return "#F8AFA6";
-      }
-    }};
+    background: ${({ background }) => background};
+    transition: background-color;
   }
 `;
 
 const WriteTwitContainer = styled.section`
   display: flex;
   width: 100%;
+  height: 153px;
   margin-bottom: 30px;
+  border-bottom: 1px solid #eff3f4;
 `;
 
 const WriteTwitProfileImgWrapper = styled.div`
@@ -123,6 +144,12 @@ const WriteTwitProfileImg = styled.img`
   width: 48px;
   height: 48px;
   border-radius: 50%;
+`;
+
+const WriteTwitContentsWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
 `;
 
 const WriteTwitInputWrapper = styled.div`
@@ -142,13 +169,14 @@ const WriteTwitAddImageIcon = styled.img`
   position: absolute;
   opacity: 1;
   z-index: 1;
-  width: 30px;
-  height: 30px;
+  width: 20px;
+  height: 20px;
 `;
 
 const WriteTwitIconWrapper = styled.div`
   display: flex;
   justify-content: flex-end;
+  align-items: center;
 `;
 
 const WriteTwitAddImageIconWrapper = styled.div`
@@ -158,12 +186,24 @@ const WriteTwitAddImageIconWrapper = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+  margin-left: 10px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+
+  :hover {
+    background-color: ${ColorMap.LIGHT_GREEN};
+  }
 `;
 
 const WriteTwitAddImageInput = styled.input`
   width: 30px;
   height: 30px;
   opacity: 0;
+`;
+
+const WriteTwitBuySellIcon = styled.img`
+  width: 30px;
+  height: 30px;
 `;
 
 const TwitBtn = styled.button`
@@ -176,6 +216,7 @@ const TwitBtn = styled.button`
   font-size: 15px;
   background: #728bec;
   transition: background-color 0.2s;
+  margin-left: 10px;
 
   :hover {
     background: #90a3f1;
