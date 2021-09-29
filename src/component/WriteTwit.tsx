@@ -1,6 +1,7 @@
 import styled from "@emotion/styled";
 import React, { ReactEventHandler, useEffect, useRef, useState } from "react";
 import { collection, addDoc, updateDoc } from "firebase/firestore";
+import { ref, uploadString } from "firebase/storage";
 import { db } from "../lib/constant/firebase/fdb";
 import { useAuth } from "../lib/hooks/useAuth";
 import Twit from "../lib/repository/Twit";
@@ -8,6 +9,13 @@ import picture from "../assets/picture.png";
 import Buy from "../assets/Buy.png";
 import Sell from "../assets/Sell.png";
 import { ColorMap } from "../lib/constant/Color";
+import { storage } from "../lib/constant/firebase/storage";
+
+const testupload = async () => {
+  const fileRef = ref(storage, "/inkyu");
+  const response = await uploadString(fileRef, "abcddfeasdf");
+  console.log(response);
+};
 
 export const WriteTwit = () => {
   const { displayName, uid, photoURL } = useAuth();
@@ -16,7 +24,7 @@ export const WriteTwit = () => {
   const [twitImg, setTwitImg] = useState(null);
   const inputRef = useRef(null);
 
-  const handleInputChange = (e: any) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setContent(e.target.value);
   };
 
@@ -26,13 +34,18 @@ export const WriteTwit = () => {
     setContent("");
   };
 
-  const handleChangeInput = (e: any) => {
+  const handleChangeInput = () => {
     const imageReader = new FileReader();
-    console.log(e);
     if (inputRef.current.files && inputRef.current.files[0]) {
-      imageReader.addEventListener("load", (ev) => console.log("asdfasdfasdf"));
+      imageReader.addEventListener("load", (event) =>
+        setTwitImg(event.target.result)
+      );
     }
     imageReader.readAsDataURL(inputRef.current.files[0]);
+  };
+
+  const handleDeletePreviewImage = () => {
+    setTwitImg(null);
   };
 
   return (
@@ -43,8 +56,19 @@ export const WriteTwit = () => {
 
       <WriteTwitContentsWrapper>
         <WriteTwitInputWrapper>
-          <WriteTwitInput onChange={handleInputChange} />
+          <WriteTwitInput
+            onChange={handleInputChange}
+            placeholder="What's happening?"
+          />
         </WriteTwitInputWrapper>
+
+        {twitImg && (
+          <WriteTwitImagePreviewWrapper>
+            <WriteTwitImageDeleteBtn onClick={handleDeletePreviewImage} />
+
+            <WriteTwitImagePreview src={twitImg} />
+          </WriteTwitImagePreviewWrapper>
+        )}
 
         <WriteTwitIconWrapper>
           <WriteTwitAddImageIconWrapper>
@@ -101,9 +125,37 @@ const BtnGroup = [
   },
 ];
 
-const WriteTwitImagePreviewWrapper = styled.div``;
+const WriteTwitImagePreviewWrapper = styled.div`
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  margin: 4px 0 4px 0;
+`;
 
-const WriteTwitImagePreview = styled.img``;
+const WriteTwitImageDeleteBtn = styled.button`
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: black;
+  transition: background-color 0.2s;
+  text-decoration: none;
+  border: none;
+
+  :hover {
+    background: white;
+    transition: background-color;
+  }
+`;
+
+const WriteTwitImagePreview = styled.img`
+  width: 100%;
+  border-radius: 15px;
+`;
 
 const WriteTwitBuySellIconWrapper = styled.div<{
   selected: boolean;
@@ -129,7 +181,7 @@ const WriteTwitBuySellIconWrapper = styled.div<{
 const WriteTwitContainer = styled.section`
   display: flex;
   width: 100%;
-  height: 153px;
+  height: auto;
   margin-bottom: 30px;
   border-bottom: 1px solid #eff3f4;
 `;
