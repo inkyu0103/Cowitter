@@ -17,7 +17,7 @@ export interface UserInfo {
 }
 
 export interface addTwitModel {
-  content: string;
+  content: Content;
   userInfo: {
     displayName: string;
     photoURL: string;
@@ -26,4 +26,8 @@ export interface addTwitModel {
   twitState: number;
 }
 
+export interface Content {
+  content: string;
+  imageUrl: string;
+}
 // 트윗 id ---> doc --> prefer / comment

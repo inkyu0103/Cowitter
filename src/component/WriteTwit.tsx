@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
 import React, { ReactEventHandler, useEffect, useRef, useState } from "react";
 import { collection, addDoc, updateDoc } from "firebase/firestore";
-import { ref, uploadString } from "firebase/storage";
+import { ref, uploadString, getDownloadURL } from "firebase/storage";
 import { db } from "../lib/constant/firebase/fdb";
 import { useAuth } from "../lib/hooks/useAuth";
 import Twit from "../lib/repository/Twit";
@@ -10,18 +10,16 @@ import Buy from "../assets/Buy.png";
 import Sell from "../assets/Sell.png";
 import { ColorMap } from "../lib/constant/Color";
 import { storage } from "../lib/constant/firebase/storage";
-
-const testupload = async () => {
-  const fileRef = ref(storage, "/inkyu");
-  const response = await uploadString(fileRef, "abcddfeasdf");
-  console.log(response);
-};
+import Storage from "../lib/repository/Storage";
 
 export const WriteTwit = () => {
   const { displayName, uid, photoURL } = useAuth();
   const [content, setContent] = useState(null);
   const [twitState, setTwitState] = useState(0);
-  const [twitImg, setTwitImg] = useState(null);
+  const [twitObj, setTwitObj] = useState({
+    name: null,
+    file: null,
+  });
   const inputRef = useRef(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -30,22 +28,42 @@ export const WriteTwit = () => {
 
   const handleAddTwit = async () => {
     const userInfo = { displayName, photoURL, uid };
-    await Twit.addTwit({ content, userInfo, twitState });
-    setContent("");
+    const myStorageRef = await Storage.getMyStorageRef(uid);
+
+    const fileRef = await Storage.getFileRef({
+      storageRef: myStorageRef,
+      path: `${uid}/${twitObj.name}`,
+    });
+
+    await Storage.uploadFile({ fileRef, file: twitObj.file });
+
+    const imageUrl = await Storage.getImageUrl({
+      storageRef: myStorageRef,
+      path: `${uid}/${twitObj.name}`,
+    });
+
+    await Twit.addTwit({
+      content: { content, imageUrl },
+      userInfo,
+      twitState,
+    });
   };
 
   const handleChangeInput = () => {
     const imageReader = new FileReader();
     if (inputRef.current.files && inputRef.current.files[0]) {
       imageReader.addEventListener("load", (event) =>
-        setTwitImg(event.target.result)
+        setTwitObj({
+          name: inputRef.current.files[0].name,
+          file: event.target.result,
+        })
       );
     }
     imageReader.readAsDataURL(inputRef.current.files[0]);
   };
 
   const handleDeletePreviewImage = () => {
-    setTwitImg(null);
+    setTwitObj({ name: null, file: null });
   };
 
   return (
@@ -62,11 +80,11 @@ export const WriteTwit = () => {
           />
         </WriteTwitInputWrapper>
 
-        {twitImg && (
+        {twitObj?.file && (
           <WriteTwitImagePreviewWrapper>
             <WriteTwitImageDeleteBtn onClick={handleDeletePreviewImage} />
 
-            <WriteTwitImagePreview src={twitImg} />
+            <WriteTwitImagePreview src={twitObj.file} />
           </WriteTwitImagePreviewWrapper>
         )}
 

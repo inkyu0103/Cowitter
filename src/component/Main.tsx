@@ -7,6 +7,7 @@ import Twit from "../lib/repository/Twit";
 
 export const Main = () => {
   const myInfo = useAuth();
+  console.log("myinfo is", myInfo);
   const [twitList, setTwitList] = useState(null);
   // check
   useEffect(() => {
@@ -21,14 +22,17 @@ export const Main = () => {
   return (
     <MainContainer>
       <HomeText>HOME</HomeText>
-      {myInfo?.uid && <WriteTwit />}
+      <WriteTwit />
       {twitList?.length && <TwitList twitList={twitList} />}
     </MainContainer>
   );
 };
 
 const MainContainer = styled.section`
-  width: 500px;
+  width: 40%;
+  min-width: 413px;
+  max-width: 519px;
+  border: 1px solid red;
 `;
 
 const HomeText = styled.div`

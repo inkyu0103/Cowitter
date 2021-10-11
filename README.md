@@ -75,19 +75,11 @@ saved twit
 좋아요 기능
 
 Twit {
-작성자 정보 : uid / photoURL / 등등...
-트윗 category : buy / sell
+WriterInfo :{ --> ref로 끼워넣고 Join을 시킬까?
+uid:string;
+photoURL : string;
+},
+content:string,
+imageURL:string,
+state:number (buy/sell) # 추후 like
 }
-
-imgbb img 저장 하기.
-
-Comment {
-Twit Id
-content{
-작성자 어쩌구
-}
-}
-
-twit을 하나 작성하면
-preference와
-comment를 ref로 만들어서 doc.id를 다 가지고 있자.
