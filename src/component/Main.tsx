@@ -7,9 +7,8 @@ import Twit from "../lib/repository/Twit";
 
 export const Main = () => {
   const myInfo = useAuth();
-  console.log("myinfo is", myInfo);
   const [twitList, setTwitList] = useState(null);
-  // check
+
   useEffect(() => {
     const getTwits = async () => {
       const response = await Twit.getTwits();
@@ -18,12 +17,11 @@ export const Main = () => {
     getTwits();
   }, []);
 
-  //좋아요 처리
   return (
     <MainContainer>
       <HomeText>HOME</HomeText>
       <WriteTwit />
-      {twitList?.length && <TwitList twitList={twitList} />}
+      {twitList && <TwitList twitList={twitList} />}
     </MainContainer>
   );
 };
