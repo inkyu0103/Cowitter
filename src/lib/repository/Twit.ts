@@ -5,7 +5,7 @@ import {
   getDocs,
   Timestamp,
   deleteDoc,
-  doc
+  doc,
 } from "firebase/firestore";
 import { db } from "../../lib/constant/firebase/fdb";
 import { addTwitModel } from "../model/twitModel";
@@ -15,7 +15,6 @@ class Twit {
     const twitRef = await addDoc(collection(db, "Twit"), {
       commentId: null,
       content,
-      imgUrl: null,
       preferenceId: null,
       userInfo,
       twitState,
@@ -33,29 +32,28 @@ class Twit {
     });
 
     await updateDoc(twitRef, {
-      commentId: commentRef.id,
+      commentId: commentRef,
       preferenceId: preferenceRef,
     });
   }
 
   async getTwits() {
     const twitRef = await getDocs(collection(db, "Twit"));
-    // twit interface 적용
+
     const result: any = [];
+
     twitRef.forEach((twit) => {
       const data = twit.data();
       data.twitId = twit.id;
       result.push(data);
     });
-
-    console.log(result);
+    console.log("result is ", result);
     return result;
   }
 
-  async deleteTwit(twitId:string){
-      await deleteDoc(doc(db,'Twit',twitId))
+  async deleteTwit(twitId: string) {
+    await deleteDoc(doc(db, "Twit", twitId));
   }
-
 }
 
 export default new Twit();

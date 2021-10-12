@@ -3,11 +3,9 @@ import { default as TwitObj } from "../lib/repository/Twit";
 import styled from "@emotion/styled";
 import React from "react";
 import userDefault from "../assets/userIcon.png";
-import Prefer from "../lib/repository/Prefer";
 
 export const Twit = ({
   twitId,
-  imgUrl,
   content,
   userInfo,
   twitState,
@@ -21,10 +19,12 @@ export const Twit = ({
         <TwitUserImageContainer src={userInfo.photoURL || userDefault} />
         <TwitMainTextContentWrapper>
           <h1>{userInfo.displayName}</h1>
-          <div>{content}</div>
+          <div>{content.content}</div>
         </TwitMainTextContentWrapper>
       </TwitMaininfoWrapper>
-      <TwitImgWrapper>{imgUrl && <img src={imgUrl} />}</TwitImgWrapper>
+      <TwitImgWrapper>
+        {content.imageUrl && <img src={content.imageUrl} />}
+      </TwitImgWrapper>
       <TwitIconListWrapper></TwitIconListWrapper>
       <button onClick={() => TwitObj.deleteTwit(twitId)}>삭제</button>
     </TwitContainer>
@@ -54,15 +54,6 @@ const TwitUserImageContainer = styled.img`
   padding: 4px;
   border-radius: 50%;
 `;
-
-const TwitLikeIconWrapper = styled.div``;
-const TwitLikeIcon = styled.img`
-  width: 20px;
-  height: 20px;
-`;
-
-// main info --> userimg , id, content
-// 좋아요를 누른다 --> 이 글을 좋아하는 사람 목록에 추가된다.
 
 const TwitImgWrapper = styled.div``;
 

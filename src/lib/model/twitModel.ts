@@ -1,12 +1,10 @@
 export interface TwitModel {
   commentId: string;
-  content: string;
-  imgUrl: string;
+  content: Content;
   preferenceId: string;
   userInfo: UserInfo;
   twitId?: string;
   twitState: number;
-  // 고치기
   timeStamp: any;
 }
 
@@ -20,7 +18,7 @@ export interface addTwitModel {
   content: Content;
   userInfo: {
     displayName: string;
-    photoURL: string;
+    photoUrl: string;
     uid: string;
   };
   twitState: number;
