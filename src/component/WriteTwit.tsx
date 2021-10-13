@@ -1,8 +1,5 @@
 import styled from "@emotion/styled";
-import React, { ReactEventHandler, useEffect, useRef, useState } from "react";
-import { collection, addDoc, updateDoc } from "firebase/firestore";
-import { ref, uploadString, getDownloadURL } from "firebase/storage";
-import { db } from "../lib/constant/firebase/fdb";
+import React, { useRef, useState } from "react";
 import { useAuth } from "../lib/hooks/useAuth";
 import Twit from "../lib/repository/Twit";
 import picture from "../assets/picture.png";
@@ -14,56 +11,73 @@ import Storage from "../lib/repository/Storage";
 
 export const WriteTwit = () => {
   const { displayName, uid, photoURL } = useAuth();
-  const [content, setContent] = useState(null);
-  const [twitState, setTwitState] = useState(0);
-  const [twitObj, setTwitObj] = useState({
-    name: null,
-    file: null,
+  const [twitContent, setTwitContent] = useState({
+    content: null,
+    twitState: 0,
+    image: {
+      name: null,
+      url: null,
+    },
   });
+
   const inputRef = useRef(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setContent(e.target.value);
+    setTwitContent({ ...twitContent, ["content"]: e.target.value });
   };
 
   const handleAddTwit = async () => {
     const userInfo = { displayName, photoURL, uid };
-    const myStorageRef = await Storage.getMyStorageRef(uid);
-
-    const fileRef = await Storage.getFileRef({
-      storageRef: myStorageRef,
-      path: `${uid}/${twitObj.name}`,
-    });
-
-    await Storage.uploadFile({ fileRef, file: twitObj.file });
-
-    const imageUrl = await Storage.getImageUrl({
-      storageRef: myStorageRef,
-      path: `${uid}/${twitObj.name}`,
-    });
-
     await Twit.addTwit({
-      content: { content, imageUrl },
-      userInfo,
-      twitState,
+      content: {
+        content: twitContent.content,
+        imageUrl: twitContent.image.url,
+      },
+      userInfo: {
+        displayName,
+        uid,
+        photoUrl: photoURL,
+      },
+      twitState: twitContent.twitState,
     });
   };
 
-  const handleChangeInput = () => {
+  const handleChangeInput = async () => {
     const imageReader = new FileReader();
+    const myStorageRef = await Storage.getMyStorageRef(uid);
+
     if (inputRef.current.files && inputRef.current.files[0]) {
-      imageReader.addEventListener("load", (event) =>
-        setTwitObj({
-          name: inputRef.current.files[0].name,
-          file: event.target.result,
-        })
-      );
+      imageReader.addEventListener("load", async (event) => {
+        const fileRef = await Storage.getFileRef({
+          storageRef: myStorageRef,
+          path: `${uid}/${twitContent.image.name}`,
+        });
+        await Storage.uploadFile({ fileRef, file: event.target.result });
+
+        // 아 사진이 없는 경우도 있구나? 사진 url 받아오는 건 여기서 할 일이 아닌데..?
+
+        const imageUrl = await Storage.getImageUrl({
+          storageRef: myStorageRef,
+          path: `${uid}/${twitContent.image.name}`,
+        });
+
+        setTwitContent({
+          ...twitContent,
+          ["image"]: {
+            url: imageUrl,
+            name: inputRef.current.files[0].name,
+          },
+        });
+      });
     }
     imageReader.readAsDataURL(inputRef.current.files[0]);
   };
 
   const handleDeletePreviewImage = () => {
-    setTwitObj({ name: null, file: null });
+    setTwitContent({
+      ...twitContent,
+      ["image"]: { name: null, url: null },
+    });
   };
 
   return (
@@ -80,11 +94,11 @@ export const WriteTwit = () => {
           />
         </WriteTwitInputWrapper>
 
-        {twitObj?.file && (
+        {twitContent.image?.url && (
           <WriteTwitImagePreviewWrapper>
             <WriteTwitImageDeleteBtn onClick={handleDeletePreviewImage} />
 
-            <WriteTwitImagePreview src={twitObj.file} />
+            <WriteTwitImagePreview src={twitContent.image.url} />
           </WriteTwitImagePreviewWrapper>
         )}
 
@@ -102,10 +116,11 @@ export const WriteTwit = () => {
           {BtnGroup.map((btn, idx) => {
             return (
               <WriteTwitBuySellIconWrapper
+                key={idx}
                 selected={btn.selected}
                 background={btn.background}
                 onClick={(e) => {
-                  setTwitState(btn.state);
+                  setTwitContent({ ...twitContent, ["twitState"]: btn.state });
                   btn.selected = true;
                   BtnGroup.forEach((obtn, oidx) => {
                     if (idx !== oidx) {
